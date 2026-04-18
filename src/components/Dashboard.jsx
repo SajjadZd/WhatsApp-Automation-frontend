@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { Bell, Plus } from "lucide-react";
+import Conversation from "./Conversation";
+import { Knowledgebase } from "./Knowledgebase";
+import { Settings } from "./Settings";
+import { Profile } from "./Profile";
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -9,13 +13,13 @@ export default function Dashboard() {
             case "dashboard":
                 return <DashboardContent />;
             case "conversations":
-                return <Page title="Conversations" />;
+                return <Conversation title="Conversations" />;
             case "knowledge":
-                return <Page title="Knowledge Base" />;
+                return <Knowledgebase title="Knowledge Base" />;
             case "settings":
-                return <Page title="Settings" />;
+                return <Settings title="Settings" />;
             case "profile":
-                return <Page title="Profile" />;
+                return <Profile title="Profile" />;
             default:
                 return <DashboardContent />;
         }

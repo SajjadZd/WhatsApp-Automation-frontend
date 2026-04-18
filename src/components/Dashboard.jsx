@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Bell, Plus } from "lucide-react";
 import Conversation from "./Conversation";
-import { Knowledgebase } from "./Knowledgebase";
+import KnowledgeBase from "./Knowledgebase";
 import { Settings } from "./Settings";
 import { Profile } from "./Profile";
 
@@ -15,7 +15,7 @@ export default function Dashboard() {
             case "conversations":
                 return <Conversation title="Conversations" />;
             case "knowledge":
-                return <Knowledgebase title="Knowledge Base" />;
+                return <KnowledgeBase title="Knowledge Base" />;
             case "settings":
                 return <Settings title="Settings" />;
             case "profile":

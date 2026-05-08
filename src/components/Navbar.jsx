@@ -47,7 +47,9 @@ export const Navbar = () => {
                     <Link to="/signup">
                         <Button>Get Started Free</Button>
                     </Link>
-                    <Button variant="secondary">Log in to Dashboard</Button>
+                    <Link to="/login">
+                        <Button variant="secondary">Log in to Dashboard</Button>
+                    </Link>
                 </div>
             </Container>
         </div>

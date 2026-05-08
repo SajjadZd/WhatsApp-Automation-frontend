@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const KnowledgeBase = ({ title }) => {
-    // ✅ Existing PDF (Dummy Cloudinary link)
     const [pdfUrl, setPdfUrl] = useState(
         "https://res.cloudinary.com/demo/image/upload/sample.pdf"
     );
@@ -12,10 +11,27 @@ const KnowledgeBase = ({ title }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // ✅ Handle Upload
+    // ✅ File Validation
+    const validateFile = (file) => {
+        if (!file) return "No file selected";
+
+        if (file.type !== "application/pdf") {
+            return "Only PDF files are allowed";
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            return "File size must be less than 10MB";
+        }
+
+        return null;
+    };
+
+    // ✅ Handle Upload (PUT API)
     const handleUpload = async () => {
-        if (!file) {
-            setError("Please select a PDF first");
+        const validationError = validateFile(file);
+
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
@@ -26,22 +42,31 @@ const KnowledgeBase = ({ title }) => {
             const formData = new FormData();
             formData.append("pdf", file);
 
-            // 🔁 Replace with your backend endpoint
-            const res = await axios.post("/api/upload-pdf", formData, {
+            const res = await axios.put("/document/update", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
 
-            // ✅ Assume backend returns new PDF URL
+            // ✅ Handle API response safely
+            if (!res.data || !res.data.success) {
+                throw new Error(res.data?.message || "Update failed");
+            }
+
+            // ✅ Update PDF URL
             setPdfUrl(res.data.pdfUrl);
 
-            // Reset
+            // Reset state
             setShowUpload(false);
             setFile(null);
         } catch (err) {
             console.error(err);
-            setError("Upload failed. Please try again.");
+
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Upload failed. Please try again."
+            );
         } finally {
             setLoading(false);
         }
@@ -49,7 +74,6 @@ const KnowledgeBase = ({ title }) => {
 
     return (
         <div className="bg-white p-6 md:p-10 rounded-xl shadow text-center max-w-2xl mx-auto">
-
             <h2 className="text-2xl font-semibold">{title}</h2>
 
             {/* ✅ VIEW MODE */}
@@ -61,11 +85,15 @@ const KnowledgeBase = ({ title }) => {
 
                     {/* PDF Preview */}
                     <div className="border rounded-lg p-4 mb-4">
-                        <iframe
-                            src={pdfUrl}
-                            title="PDF Preview"
-                            className="w-full h-64 md:h-80 rounded"
-                        />
+                        {pdfUrl ? (
+                            <iframe
+                                src={pdfUrl}
+                                title="PDF Preview"
+                                className="w-full h-64 md:h-80 rounded"
+                            />
+                        ) : (
+                            <p className="text-gray-400">No PDF available</p>
+                        )}
                     </div>
 
                     <button
@@ -87,7 +115,10 @@ const KnowledgeBase = ({ title }) => {
                     {/* Upload Box */}
                     <div
                         className="border-2 border-dashed border-gray-300 rounded-xl p-6 md:p-8 text-center cursor-pointer hover:bg-gray-50"
-                        onClick={() => document.getElementById("fileInput").click()}
+                        onClick={() =>
+                            !loading &&
+                            document.getElementById("fileInput").click()
+                        }
                     >
                         <p className="text-gray-600">Click to upload PDF</p>
                         <p className="text-xs text-gray-400 mt-1">
@@ -100,7 +131,11 @@ const KnowledgeBase = ({ title }) => {
                         type="file"
                         accept="application/pdf"
                         hidden
-                        onChange={(e) => setFile(e.target.files[0])}
+                        onChange={(e) => {
+                            const selectedFile = e.target.files[0];
+                            setFile(selectedFile);
+                            setError("");
+                        }}
                     />
 
                     {/* Selected File */}
@@ -127,9 +162,11 @@ const KnowledgeBase = ({ title }) => {
 
                         <button
                             onClick={() => {
-                                setShowUpload(false);
-                                setFile(null);
-                                setError("");
+                                if (!loading) {
+                                    setShowUpload(false);
+                                    setFile(null);
+                                    setError("");
+                                }
                             }}
                             className="bg-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400 transition"
                         >

@@ -14,9 +14,43 @@ export const Profile = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    // ✅ NEW STATES FOR 2FA
+    const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+    const [toggleLoading, setToggleLoading] = useState(false);
+
     // Handle Input Change
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // ✅ Toggle 2FA API
+    const handleToggle2FA = async () => {
+        try {
+            setToggleLoading(true);
+            setMessage("");
+
+            const res = await axios.put("/toggle-2fa");
+
+            if (!res.data || !res.data.success) {
+                throw new Error(res.data?.message || "Failed to toggle 2FA");
+            }
+
+            // Toggle locally
+            setIs2FAEnabled((prev) => !prev);
+
+            setMessage(
+                `2FA ${!is2FAEnabled ? "Enabled ✅" : "Disabled ❌"}`
+            );
+        } catch (err) {
+            console.error(err);
+            setMessage(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to update 2FA"
+            );
+        } finally {
+            setToggleLoading(false);
+        }
     };
 
     // Save Profile
@@ -36,7 +70,6 @@ export const Profile = () => {
 
             setMessage("Profile updated successfully ✅");
 
-            // Optionally update UI with fresh backend data
             setFormData((prev) => ({
                 ...prev,
                 password: "",
@@ -79,6 +112,37 @@ export const Profile = () => {
                             <p className="text-lg font-semibold">89%</p>
                             <p className="text-xs text-gray-500">AI Accuracy</p>
                         </div>
+                    </div>
+
+                    {/* ✅ 2FA TOGGLE */}
+                    <div className="mt-6 text-left">
+                        <p className="text-sm font-medium mb-2">
+                            Two-Factor Authentication (2FA)
+                        </p>
+
+                        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <span className="text-sm text-gray-600">
+                                {is2FAEnabled ? "Enabled" : "Disabled"}
+                            </span>
+
+                            <button
+                                onClick={handleToggle2FA}
+                                disabled={toggleLoading}
+                                className={`w-12 h-6 flex items-center rounded-full p-1 transition ${is2FAEnabled ? "bg-green-500" : "bg-gray-300"
+                                    }`}
+                            >
+                                <div
+                                    className={`bg-white w-4 h-4 rounded-full shadow transform transition ${is2FAEnabled ? "translate-x-6" : ""
+                                        }`}
+                                />
+                            </button>
+                        </div>
+
+                        {toggleLoading && (
+                            <p className="text-xs text-gray-400 mt-1">
+                                Updating...
+                            </p>
+                        )}
                     </div>
                 </div>
 

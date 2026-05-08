@@ -1,129 +1,4 @@
-import React, { useState } from "react";
-
-// ✅ Dummy JSON Data
-const conversationsData = [
-    {
-        id: 1,
-        phone: "0908779",
-        messages: [
-            { from: "user", text: "Hello!" },
-            { from: "agent", text: "Hi, how can I help you?" },
-        ],
-    },
-    {
-        id: 2,
-        phone: "03123456789",
-        messages: [
-            { from: "user", text: "Is this available?" },
-            { from: "agent", text: "Yes, it is available." },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-    {
-        id: 3,
-        phone: "03219876543",
-        messages: [
-            { from: "user", text: "Need support!" },
-            { from: "agent", text: "Sure, what's the issue?" },
-        ],
-    },
-
-];
+import React, { useState, useEffect } from "react";
 
 // 🎨 Colors
 const colors = [
@@ -135,7 +10,48 @@ const colors = [
 ];
 
 const Conversation = () => {
+    const [conversationsData, setConversationsData] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // ✅ Fetch API
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                setLoading(true);
+
+                const res = await fetch("/conversation/conversations");
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error("Failed to fetch conversations");
+                }
+
+                setConversationsData(data.data || []);
+            } catch (err) {
+                setError(err.message || "Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchConversations();
+    }, []);
+
+    // ✅ Loading State
+    if (loading) {
+        return <div className="text-center mt-10">Loading...</div>;
+    }
+
+    // ✅ Error State
+    if (error) {
+        return (
+            <div className="text-center text-red-500 mt-10">
+                {error}
+            </div>
+        );
+    }
 
     return (
         <div className="h-[80vh]">
@@ -143,19 +59,30 @@ const Conversation = () => {
             {/* ✅ CARDS VIEW */}
             {!selectedChat && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {conversationsData.map((chat, index) => (
-                        <div
-                            key={chat.id}
-                            onClick={() => setSelectedChat(chat)}
-                            className={`p-6 rounded-xl cursor-pointer shadow hover:scale-105 transition ${colors[index % colors.length]
-                                }`}
-                        >
-                            <h3 className="font-semibold text-lg">{chat.phone}</h3>
-                            <p className="text-sm text-gray-600">
-                                Click to open chat
-                            </p>
-                        </div>
-                    ))}
+                    {conversationsData.length === 0 ? (
+                        <p>No conversations found</p>
+                    ) : (
+                        conversationsData.map((chat, index) => (
+                            <div
+                                key={chat._id}
+                                onClick={() => chat && setSelectedChat(chat)}
+                                className={`p-6 rounded-xl cursor-pointer shadow hover:scale-105 transition ${colors[index % colors.length]
+                                    }`}
+                            >
+                                <h3 className="font-semibold text-lg">
+                                    {chat.contactId?.phone || "Unknown"}
+                                </h3>
+
+                                <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                                    {chat.lastMessage || "No messages"}
+                                </p>
+
+                                <p className="text-xs text-gray-400 mt-2">
+                                    Unread: {chat.unreadCount || 0}
+                                </p>
+                            </div>
+                        ))
+                    )}
                 </div>
             )}
 
@@ -166,7 +93,7 @@ const Conversation = () => {
                     {/* Header */}
                     <div className="flex justify-between items-center border-b pb-3 mb-3">
                         <h2 className="text-xl font-semibold">
-                            {selectedChat.phone}
+                            {selectedChat.contactId?.phone || "Unknown"}
                         </h2>
 
                         <button
@@ -179,19 +106,10 @@ const Conversation = () => {
 
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto space-y-3">
-                        {selectedChat.messages.map((msg, index) => (
-                            <div
-                                key={index}
-                                className={`p-3 rounded-lg max-w-xs ${msg.from === "user"
-                                    ? "bg-blue-500 text-white ml-auto"
-                                    : "bg-gray-200 text-black"
-                                    }`}
-                            >
-                                {msg.text}
-                            </div>
-                        ))}
+                        <div className="p-3 bg-gray-200 rounded-lg max-w-xs">
+                            {selectedChat.lastMessage || "No messages yet"}
+                        </div>
                     </div>
-
                 </div>
             )}
         </div>

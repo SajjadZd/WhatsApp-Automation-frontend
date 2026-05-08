@@ -1,12 +1,53 @@
-import React, { useState } from "react";
 import { Bell, Plus } from "lucide-react";
 import Conversation from "./Conversation";
 import KnowledgeBase from "./Knowledgebase";
 import { Settings } from "./Settings";
 import { Profile } from "./Profile";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("dashboard");
+    const [totalMessages, setTotalMessages] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+
+    useEffect(() => {
+        const fetchMe = async () => {
+            try {
+                setLoading(true);
+
+                const res = await axios.get("/me");
+
+                if (!res.data) {
+                    throw new Error("Invalid response");
+                }
+
+                // ✅ Adjust based on your backend structure
+                const tenant = res.data.tenant || res.data.data?.tenant;
+
+                if (!tenant) {
+                    throw new Error("Tenant data not found");
+                }
+
+                // ✅ Extract total messages (adjust key if needed)
+                setTotalMessages(tenant.totalMessages || 0);
+
+            } catch (err) {
+                console.error(err);
+                setError(
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Failed to load data"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMe();
+    }, []);
 
     const renderContent = () => {
         switch (activeTab) {
@@ -21,7 +62,11 @@ export default function Dashboard() {
             case "profile":
                 return <Profile title="Profile" />;
             default:
-                return <DashboardContent />;
+                return <DashboardContent
+                    totalMessages={totalMessages}
+                    loading={loading}
+                    error={error}
+                />
         }
     };
 
@@ -114,12 +159,16 @@ function NavItem({ label, tab, activeTab, setActiveTab }) {
 }
 
 /* Dashboard Content */
-function DashboardContent() {
+function DashboardContent({ totalMessages, loading, error }) {
     return (
         <>
             {/* Cards */}
             <div className="grid md:grid-cols-3 gap-4">
-                <Card title="Total Messages" value="12,842" extra="+12%" />
+                <Card
+                    title="Total Messages"
+                    value={loading ? "Loading..." : error ? "Error" : totalMessages}
+                    extra=""
+                />
                 <Card title="AI Responses" value="9,410" extra="+73% rate" />
 
                 <div className="bg-white p-5 rounded-xl shadow">

@@ -24,14 +24,14 @@ export default function Dashboard() {
                     throw new Error("Invalid response");
                 }
 
-                // ✅ Adjust based on your backend structure
+                // Adjust based on your backend structure
                 const tenant = res.data.tenant || res.data.data?.tenant;
 
                 if (!tenant) {
                     throw new Error("Tenant data not found");
                 }
 
-                // ✅ Extract total messages (adjust key if needed)
+                // Extract total messages (adjust key if needed)
                 setTotalMessages(tenant.totalMessages || 0);
 
             } catch (err) {
@@ -221,18 +221,6 @@ function DashboardContent({ totalMessages, loading, error }) {
         </>
     );
 }
-
-/* Placeholder Pages */
-// function Page({ title }) {
-//     return (
-//         <div className="bg-white p-10 rounded-xl shadow text-center">
-//             <h2 className="text-2xl font-semibold">{title}</h2>
-//             <p className="text-gray-500 mt-2">
-//                 This tab is now functional 🎉
-//             </p>
-//         </div>
-//     );
-// }
 
 /* Card */
 function Card({ title, value, extra }) {

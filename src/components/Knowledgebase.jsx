@@ -11,7 +11,7 @@ const KnowledgeBase = ({ title }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // ✅ File Validation
+    // File Validation
     const validateFile = (file) => {
         if (!file) return "No file selected";
 
@@ -26,7 +26,7 @@ const KnowledgeBase = ({ title }) => {
         return null;
     };
 
-    // ✅ Handle Upload (PUT API)
+    // Handle Upload (PUT API)
     const handleUpload = async () => {
         const validationError = validateFile(file);
 
@@ -48,12 +48,12 @@ const KnowledgeBase = ({ title }) => {
                 },
             });
 
-            // ✅ Handle API response safely
+            // Handle API response safely
             if (!res.data || !res.data.success) {
                 throw new Error(res.data?.message || "Update failed");
             }
 
-            // ✅ Update PDF URL
+            // Update PDF URL
             setPdfUrl(res.data.pdfUrl);
 
             // Reset state
@@ -76,7 +76,7 @@ const KnowledgeBase = ({ title }) => {
         <div className="bg-white p-6 md:p-10 rounded-xl shadow text-center max-w-2xl mx-auto">
             <h2 className="text-2xl font-semibold">{title}</h2>
 
-            {/* ✅ VIEW MODE */}
+            {/* VIEW MODE */}
             {!showUpload && (
                 <>
                     <p className="text-gray-500 mt-2 mb-6">
@@ -105,7 +105,7 @@ const KnowledgeBase = ({ title }) => {
                 </>
             )}
 
-            {/* ✅ UPLOAD MODE */}
+            {/* UPLOAD MODE */}
             {showUpload && (
                 <>
                     <p className="text-gray-500 text-sm mb-6">

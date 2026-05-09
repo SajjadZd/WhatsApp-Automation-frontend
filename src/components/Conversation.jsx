@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-// 🎨 Colors
+// Colors
 const colors = [
     "bg-blue-100",
     "bg-green-100",
@@ -15,7 +15,7 @@ const Conversation = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ✅ Fetch API
+    // Fetch API
     useEffect(() => {
         const fetchConversations = async () => {
             try {
@@ -39,12 +39,12 @@ const Conversation = () => {
         fetchConversations();
     }, []);
 
-    // ✅ Loading State
+    // Loading State
     if (loading) {
         return <div className="text-center mt-10">Loading...</div>;
     }
 
-    // ✅ Error State
+    // Error State
     if (error) {
         return (
             <div className="text-center text-red-500 mt-10">
@@ -56,7 +56,7 @@ const Conversation = () => {
     return (
         <div className="h-[80vh]">
 
-            {/* ✅ CARDS VIEW */}
+            {/* CARDS VIEW */}
             {!selectedChat && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {conversationsData.length === 0 ? (
@@ -86,7 +86,7 @@ const Conversation = () => {
                 </div>
             )}
 
-            {/* ✅ CHAT VIEW */}
+            {/* CHAT VIEW */}
             {selectedChat && (
                 <div className="bg-white h-full rounded-xl shadow flex flex-col p-4">
 

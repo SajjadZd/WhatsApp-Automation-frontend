@@ -8,35 +8,6 @@ import { Features } from "./Features";
 import Footer from "./Footer";
 import FAQSection from "./FAQsection";
 
-// const PricingCard = ({ plan, price, features, highlighted }) => (
-//     <div
-//         className={`rounded-2xl p-8 border transition relative ${highlighted
-//             ? "border-blue-600 shadow-xl bg-white scale-[1.02]"
-//             : "border-gray-200 bg-white"
-//             }`}
-//     >
-//         {highlighted && (
-//             <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
-//                 MOST POPULAR
-//             </span>
-//         )}
-
-//         <h3 className="font-semibold text-lg mb-2">{plan}</h3>
-//         <p className="text-3xl font-bold mb-6">${price}</p>
-
-//         <ul className="space-y-3 mb-8">
-//             {features.map((f, i) => (
-//                 <li key={i} className="text-sm text-gray-600 flex gap-2">
-//                     <span className="text-blue-600">✓</span> {f}
-//                 </li>
-//             ))}
-//         </ul>
-
-//         <Button variant={highlighted ? "primary" : "secondary"}>
-//             {highlighted ? "Get Pro Now" : "Choose Starter"}
-//         </Button>
-//     </div>
-// );
 
 export default function LandingPage() {
     return (

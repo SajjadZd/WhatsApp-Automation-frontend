@@ -1,41 +1,127 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export const Profile = () => {
     const [formData, setFormData] = useState({
-        name: "Alex Rivera",
-        email: "alex.rivera@autoreply.ai",
-        phone: "+1 (555) 0123-4567",
-        company: "AutoReply AI Solutions",
-        password: "",
-        confirmPassword: "",
+        name: "",
+        email: "",
+        whatsappToken: "",
+        oldPassword: "",
+        newPassword: "",
     });
 
     const [loading, setLoading] = useState(false);
+    const [passwordLoading, setPasswordLoading] = useState(false);
     const [message, setMessage] = useState("");
 
-    // ✅ NEW STATES FOR 2FA
     const [is2FAEnabled, setIs2FAEnabled] = useState(false);
     const [toggleLoading, setToggleLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
 
-    // Handle Input Change
+    // ================= LOAD PROFILE =================
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await axios.get("/tenant/me");
+
+                const data = res.data;
+
+                setFormData((prev) => ({
+                    ...prev,
+                    name: data.name || "",
+                    email: data.email || "",
+                    whatsappToken: data.whatsappToken || "",
+                }));
+
+                setIs2FAEnabled(data.twoFactorEnabled || false);
+            } catch (err) {
+                console.error(err);
+                setMessage("Failed to load profile ❌");
+            } finally {
+                setPageLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, []);
+
+    // ================= HANDLE INPUT =================
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // ✅ Toggle 2FA API
+    // ================= UPDATE PROFILE =================
+    const handleUpdateProfile = async () => {
+        if (!formData.name || !formData.email) {
+            return setMessage("Name and Email required");
+        }
+
+        try {
+            setLoading(true);
+            setMessage("");
+
+            await axios.put("/tenant/update-profile", {
+                name: formData.name,
+                email: formData.email,
+                whatsappToken: formData.whatsappToken,
+            });
+
+            setMessage("Profile updated successfully ✅");
+        } catch (err) {
+            console.error(err);
+            setMessage(
+                err.response?.data?.message || "Update failed ❌"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ================= CHANGE PASSWORD =================
+    const handleChangePassword = async () => {
+        if (!formData.oldPassword || !formData.newPassword) {
+            return setMessage("Both password fields required");
+        }
+
+        try {
+            setPasswordLoading(true);
+            setMessage("");
+
+            await axios.put("/tenant/change-password", {
+                oldPassword: formData.oldPassword,
+                newPassword: formData.newPassword,
+            });
+
+            setMessage("Password changed successfully ✅");
+
+            setFormData((prev) => ({
+                ...prev,
+                oldPassword: "",
+                newPassword: "",
+            }));
+        } catch (err) {
+            console.error(err);
+            setMessage(
+                err.response?.data?.message ||
+                "Password change failed ❌"
+            );
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
+    // ================= TOGGLE 2FA =================
     const handleToggle2FA = async () => {
         try {
             setToggleLoading(true);
             setMessage("");
 
-            const res = await axios.put("/toggle-2fa");
+            const res = await axios.put("/tenant/toggle-2fa");
 
-            if (!res.data || !res.data.success) {
-                throw new Error(res.data?.message || "Failed to toggle 2FA");
+            if (!res.data?.success) {
+                throw new Error("Failed to toggle 2FA");
             }
 
-            // Toggle locally
             setIs2FAEnabled((prev) => !prev);
 
             setMessage(
@@ -46,48 +132,26 @@ export const Profile = () => {
             setMessage(
                 err.response?.data?.message ||
                 err.message ||
-                "Failed to update 2FA"
+                "2FA update failed"
             );
         } finally {
             setToggleLoading(false);
         }
     };
 
-    // Save Profile
-    const handleSave = async () => {
-        if (
-            formData.password &&
-            formData.password !== formData.confirmPassword
-        ) {
-            return setMessage("Passwords do not match");
-        }
-
-        try {
-            setLoading(true);
-            setMessage("");
-
-            const res = await axios.post("/api/update-profile", formData);
-
-            setMessage("Profile updated successfully ✅");
-
-            setFormData((prev) => ({
-                ...prev,
-                password: "",
-                confirmPassword: "",
-            }));
-        } catch (err) {
-            console.error(err);
-            setMessage("Something went wrong ❌");
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (pageLoading) {
+        return (
+            <div className="p-4 md:p-8 bg-gray-100 min-h-screen flex items-center justify-center">
+                <p>Loading...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* LEFT PROFILE CARD */}
+                {/* LEFT PROFILE CARD (UNCHANGED DESIGN) */}
                 <div className="bg-white rounded-xl shadow p-6 text-center">
                     <img
                         src="https://i.pravatar.cc/100"
@@ -102,19 +166,7 @@ export const Profile = () => {
                         Managing director of AI operations. Oversees automation systems.
                     </p>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-lg font-semibold">12.4k</p>
-                            <p className="text-xs text-gray-500">Messages</p>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-lg font-semibold">89%</p>
-                            <p className="text-xs text-gray-500">AI Accuracy</p>
-                        </div>
-                    </div>
-
-                    {/* ✅ 2FA TOGGLE */}
+                    {/* 2FA TOGGLE */}
                     <div className="mt-6 text-left">
                         <p className="text-sm font-medium mb-2">
                             Two-Factor Authentication (2FA)
@@ -146,17 +198,15 @@ export const Profile = () => {
                     </div>
                 </div>
 
-                {/* RIGHT FORM */}
+                {/* RIGHT FORM (UPDATED FIELDS ONLY) */}
                 <div className="bg-white rounded-xl shadow p-6 lg:col-span-2">
-                    <div className="flex justify-between mb-4">
-                        <h2 className="text-lg font-semibold">Account Details</h2>
-                    </div>
+                    <h2 className="text-lg font-semibold mb-4">
+                        Account Details
+                    </h2>
 
-                    {/* FORM GRID */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                         <input
-                            type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
@@ -165,7 +215,6 @@ export const Profile = () => {
                         />
 
                         <input
-                            type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
@@ -174,38 +223,28 @@ export const Profile = () => {
                         />
 
                         <input
-                            type="text"
-                            name="phone"
-                            value={formData.phone}
+                            name="whatsappToken"
+                            value={formData.whatsappToken}
                             onChange={handleChange}
-                            placeholder="Phone"
-                            className="p-3 rounded-lg bg-gray-100"
+                            placeholder="WhatsApp Token"
+                            className="p-3 rounded-lg bg-gray-100 md:col-span-2"
                         />
 
                         <input
-                            type="text"
-                            name="company"
-                            value={formData.company}
+                            type="password"
+                            name="oldPassword"
+                            value={formData.oldPassword}
                             onChange={handleChange}
-                            placeholder="Company"
+                            placeholder="Old Password"
                             className="p-3 rounded-lg bg-gray-100"
                         />
 
                         <input
                             type="password"
-                            name="password"
-                            value={formData.password}
+                            name="newPassword"
+                            value={formData.newPassword}
                             onChange={handleChange}
                             placeholder="New Password"
-                            className="p-3 rounded-lg bg-gray-100"
-                        />
-
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            placeholder="Confirm Password"
                             className="p-3 rounded-lg bg-gray-100"
                         />
                     </div>
@@ -217,21 +256,22 @@ export const Profile = () => {
                         </p>
                     )}
 
-                    {/* ACTION BUTTONS */}
+                    {/* BUTTONS */}
                     <div className="flex justify-end gap-3 mt-6">
                         <button
-                            onClick={() => window.location.reload()}
-                            className="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                            onClick={handleUpdateProfile}
+                            disabled={loading}
+                            className="px-5 py-2 rounded-lg bg-blue-600 text-white"
                         >
-                            Cancel
+                            {loading ? "Updating..." : "Update Profile"}
                         </button>
 
                         <button
-                            onClick={handleSave}
-                            disabled={loading}
-                            className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                            onClick={handleChangePassword}
+                            disabled={passwordLoading}
+                            className="px-5 py-2 rounded-lg bg-green-600 text-white"
                         >
-                            {loading ? "Saving..." : "Save Profile"}
+                            {passwordLoading ? "Changing..." : "Change Password"}
                         </button>
                     </div>
                 </div>
